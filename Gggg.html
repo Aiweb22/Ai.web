@@ -1,0 +1,79 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat AI</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chatbox { width: 300px; height: 400px; border: 1px solid #ccc; overflow-y: scroll; margin: 20px auto; padding: 10px; }
+        input { width: 80%; padding: 10px; margin: 5px; }
+        button { padding: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>Live Chat AI</h1>
+<div id="chatbox"></div>
+<input type="text" id="userInput" placeholder="Type your message..." />
+<button onclick="sendMessage()">Send</button>
+
+<script>
+    const socket = io();
+    const chatbox = document.getElementById("chatbox");
+
+    function sendMessage() {
+        let userMessage = document.getElementById("userInput").value;
+        if (userMessage.trim() === "") return;
+
+        chatbox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+        socket.emit("userMessage", userMessage);
+
+        document.getElementById("userInput").value = "";
+    }
+
+    socket.on("botMessage", (msg) => {
+        chatbox.innerHTML += `<p><strong>Bot:</strong> ${msg}</p>`;
+        chatbox.scrollTop = chatbox.scrollHeight;
+    });
+</script>
+
+</body>
+</html><script>const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static("public"));
+
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    socket.on("userMessage", (msg) => {
+        console.log("User:", msg);
+        
+        let botReply = "මට තේරෙන්නේ නැහැ. කරුණාකර පැහැදිලි කරන්න.";
+        if (msg.toLowerCase().includes("hello")) {
+            botReply = "Hello! කොහොමද?";
+        } else if (msg.toLowerCase().includes("how are you")) {
+            botReply = "මම හොඳයි! ඔයාට කොහොමද?";
+        }
+
+        setTimeout(() => {
+            socket.emit("botMessage", botReply);
+        }, 1000);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
+});
+
+server.listen(3000, () => {
+    console.log("Server is running on port 3000");
+});
+</script>
